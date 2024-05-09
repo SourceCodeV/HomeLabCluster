@@ -24,7 +24,6 @@ variable "pm_host" {
 
 variable "pm_node_name" {
   description = "name of the proxmox node to create the VMs on"
-  type        = string
   default     = "pve"
 }
 
@@ -46,7 +45,7 @@ variable "num_k3s_nodes_mem" {
   default = "4096"
 }
 
-variable "tamplate_vm_name" {}
+variable "template_vm_name" {}
 
 variable "master_ips" {
   description = "List of ip addresses for master nodes"
