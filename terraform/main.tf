@@ -54,10 +54,10 @@ data "template_file" "k8s" {
 
 resource "local_file" "k8s_file" {
   content  = data.template_file.k8s.rendered
-  filename = "../inventory/my-cluster/hosts.ini"
+  filename = "../inventory/k3s-cluster/hosts.ini"
 }
 
 resource "local_file" "var_file" {
-  source   = "../inventory/sample/group_vars/all.yml"
-  filename = "../inventory/my-cluster/group_vars/all.yml"
+  source   = "../inventory/k3s-cluster/group_vars/all.yml"
+  filename = "../inventory/k3s-cluster/group_vars/all.yml"
 }
