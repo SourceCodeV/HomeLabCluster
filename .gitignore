@@ -240,12 +240,12 @@ kubeconfig
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
 
-inventory/*
+group_vars/*
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
 
-*/.terraform.lock.hcl
+.terraform.lock.hcl
 
-*/secret-cf-token.yaml
-*/secret-dashboard.yml
+secret-cf-token.yaml
+secret-dashboard.yml
