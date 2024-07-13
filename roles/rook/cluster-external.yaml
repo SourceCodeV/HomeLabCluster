@@ -1,0 +1,53 @@
+#################################################################################################################
+# If Rook is not managing any existing cluster in the 'rook-ceph' namespace do:
+#   kubectl create -f ../../examples/crds.yaml -f ../../examples/common.yaml -f ../../examples/operator.yaml
+#   kubectl create -f common-external.yaml -f cluster-external.yaml
+#
+# If there is already a cluster managed by Rook in 'rook-ceph' then do:
+#   kubectl create -f common-external.yaml
+#   kubectl create -f common-external.yaml
+#################################################################################################################
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph-external
+  namespace: rook-ceph-external # namespace:cluster
+spec:
+  external:
+    enable: true
+  dataDirHostPath: /var/lib/ceph
+  crashCollector:
+    disable: true
+  healthCheck:
+    daemonHealth:
+      mon:
+        disabled: false
+        interval: 60s
+  # optionally, the ceph-mgr IP address can be passed to gather metric from the prometheus exporter
+  # monitoring:
+  #   enabled: true
+  #   externalMgrEndpoints:
+  #   - ip: ip
+  #     externalMgrPrometheusPort: 9283
+
+
+# export NAMESPACE=rook-ceph
+# export ROOK_EXTERNAL_FSID=8f7b105f-b4cd-4fae-98d1-a401cc1fbd5d
+# export ROOK_EXTERNAL_USERNAME=client.healthchecker
+# export ROOK_EXTERNAL_CEPH_MON_DATA=otter=192.168.10.100:6789
+# export ROOK_EXTERNAL_USER_SECRET=AQBex49m7AhpDhAA3bLNgm2UovR7cRyupf93fw==
+# export CSI_RBD_NODE_SECRET=AQADx49mBAuzEhAAPdYS2G1sWEsId/YCiistjQ==
+# export CSI_RBD_NODE_SECRET_NAME=csi-rbd-node
+# export CSI_RBD_PROVISIONER_SECRET=AQBPx49m3UxPIhAA71AIbpsfVcAla3bk8MciLQ==
+# export CSI_RBD_PROVISIONER_SECRET_NAME=csi-rbd-provisioner
+# export CEPHFS_POOL_NAME=cephfs_data
+# export CEPHFS_METADATA_POOL_NAME=cephfs_metadata
+# export CEPHFS_FS_NAME=cephfs
+# export CSI_CEPHFS_NODE_SECRET=AQAY4Y9mkX01LxAAAWTQvab66P0zRbMJwPRkGA==
+# export CSI_CEPHFS_PROVISIONER_SECRET=AQAY4Y9mHfj1LxAAt1l2WM4Ylb/ysrKSSqMxlA==
+# export CSI_CEPHFS_NODE_SECRET_NAME=csi-cephfs-node
+# export CSI_CEPHFS_PROVISIONER_SECRET_NAME=csi-cephfs-provisioner
+# export MONITORING_ENDPOINT=192.168.10.100
+# export MONITORING_ENDPOINT_PORT=9283
+# export RBD_POOL_NAME=ceph-pv
+# export RGW_POOL_PREFIX=default
