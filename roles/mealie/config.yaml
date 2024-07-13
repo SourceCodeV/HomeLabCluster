@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mealie-configs
+  namespace: utility
+data:
+  TZ: "Europe/Brussels"
+  BASE_URL: "https://mealie.local.tigovanroy.space"
+  ALLOW_SIGNUP: "false"
+  TOKEN_TIME: "1"
+  # Email Settings
+  SMTP_HOST: "your.smtp.host"
+  SMTP_PORT: "3325"
+  SMTP_FROM_NAME: "Mealie"
+  SMTP_AUTH_STRATEGY: "TLS"
+  SMTP_FROM_EMAIL: "mealie-noreply@your.mail.domain"
+  # Database Settings
+  DB_ENGINE: "postgres"
+  POSTGRES_SERVER: "your.postgresql.server"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "mealie"
+  # OIDC Settings
+  OIDC_AUTH_ENABLED: "true"
+  OIDC_CONFIGURATION_URL: " Your config endpoint, usually ends in /.well-known/openid-configuration"
+  OIDC_SIGNUP_ENABLED: "true"
+  OIDC_USER_GROUP: "users"
+  OIDC_ADMIN_GROUP: "admins"
+  OIDC_AUTO_REDIRECT: "false"
+  OIDC_PROVIDER_NAME: "SSO"
+  OIDC_REMEMBER_ME: "false"
+  OIDC_SIGNING_ALGORITHM: "RS256"
+  OIDC_USER_CLAIM: "email"
+  # LDAP Settings
+  LDAP_AUTH_ENABLED: "false"
+  LDAP_SERVER_URL: ""
+  LDAP_TLS_INSECURE: "false"
+  LDAP_TLS_CACERTFILE: ""
+  LDAP_ENABLE_STARTTLS: "false"
+  LDAP_BASE_DN: ""
+  LDAP_USER_FILTER: ""
+  LDAP_ADMIN_FILTER: ""
+  LDAP_ID_ATTRIBUTE: "uid"
+  LDAP_NAME_ATTRIBUTE: "name"
+  LDAP_MAIL_ATTRIBUTE: "mail"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mealie-secrets
+  namespace: utility
+type: Opaque
+stringData:
+  POSTGRES_USER: "mealie"
+  POSTGRES_PASSWORD: "YourSuperSecretPassword"
+  OIDC_CLIENT_ID: "FromYourIdentityProviderSoftware"
+  LDAP_QUERY_BIND: ""
+  LDAP_QUERY_PASSWORD: ""
+  SMTP_USER: "YourSMTPUser"
+  SMTP_PASSWORD: "YourSuperSecretPassword"
