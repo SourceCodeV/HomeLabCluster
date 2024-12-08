@@ -251,3 +251,4 @@ terraform.rc
 
 secret-cf-token.yaml
 secret-dashboard.yaml
+secret.yaml
