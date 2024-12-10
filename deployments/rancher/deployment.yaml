@@ -1,0 +1,7 @@
+helm install rancher rancher-latest/rancher \
+  --namespace cattle-system \
+  --set hostname=rancher.local.tigovanroy.space \
+  --set bootstrapPassword=admin \
+  --set ingress.tls.source=letsEncrypt \
+  --set letsEncrypt.email=tigo.van.roy@hotmail.com \
+  --set letsEncrypt.ingress.class=traefik-external
