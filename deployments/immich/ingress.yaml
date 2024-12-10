@@ -1,0 +1,29 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: immich-ingress
+  namespace: immich
+  labels:
+    app: immich
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.immich.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: immich-service
+          port: 3001
+    - match: Host(`immich.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: immich-service
+          port: 3001
+      middlewares:
+        - name: immich-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls
+
