@@ -1,6 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,ansible,terraform,git
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,ansible,terraform,git
 db-auth.yaml
+config.yaml
 ### Ansible ###
 *.retry
 
