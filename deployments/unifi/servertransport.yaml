@@ -1,0 +1,7 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: ignorecert
+  namespace: unifi-controller
+spec:
+  insecureSkipVerify: true
