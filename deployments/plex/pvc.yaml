@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex-pvc-config   # < name of the persistant volume claim ("pvc'")
+  namespace: media         # < namespace where place the pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteMany         
+  resources:
+    requests:
+      storage: 10Gi              # < How much data can the pvc claim from pv
