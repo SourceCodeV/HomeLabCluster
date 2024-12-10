@@ -1,0 +1,29 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mealie-ingress
+  namespace: mealie
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`mealie.local.tigovanroy.space`) && PathPrefix(`/api`)
+      kind: Rule
+      services:
+        - name: mealie-service
+          port: 9000
+      middlewares:
+        - name: mealie-headers
+    - match: Host(`mealie.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: mealie-service
+          port: 9000
+      middlewares:
+        - name: mealie-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls
+

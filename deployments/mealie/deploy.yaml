@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mealie
+  namespace: mealie
+  labels:
+    app: mealie
+    app.kubernetes.io/name: mealie
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mealie
+  template:
+    metadata:
+      labels:
+        app: mealie
+        app.kubernetes.io/name: mealie
+    spec:
+      securityContext:
+          fsGroup: 1000
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+      volumes:
+        - name: mealie-data
+          persistentVolumeClaim:
+            claimName: mealie-data
+      containers:
+        - name: mealie
+          image: ghcr.io/mealie-recipes/mealie:nightly
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+          - name: mealie-data
+            mountPath: /app/data/
+          envFrom:
+            - configMapRef:
+                name: mealie-configs
+            - secretRef:
+                name: mealie-secrets
+          livenessProbe:
+            httpGet:
+              path: /g/home
+              port: 9000
+            initialDelaySeconds: 10
+            periodSeconds: 5
