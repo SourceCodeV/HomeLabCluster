@@ -1,0 +1,17 @@
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: filebrowser-server
+  namespace: default
+  labels:
+    app: filebrowser-server
+spec:
+  externalName: 192.168.10.110  # Replace with your NAS IP or DNS name
+  type: ExternalName
+  ports:
+    - port: 30051
+      targetPort: 30051
+      protocol: TCP
+

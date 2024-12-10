@@ -1,0 +1,29 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: filebrowser
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.filebrowser.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: filebrowser-server
+          port: 30051  # Replace with the correct port if needed
+          scheme: http  # Assuming HTTP; use https if filebrowser is using HTTPS
+          passHostHeader: true
+    - match: Host(`filebrowser.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: filebrowser-server
+          port: 30051  # Replace with the correct port if needed
+          scheme: http
+          passHostHeader: true
+      middlewares:
+        - name: default-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls  # Same TLS cert used for other services
