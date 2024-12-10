@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: actualbudget-pvc
+  namespace: actualbudget
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: actualbudget
+  name: actualbudget
+  namespace: actualbudget
+spec:
+  selector:
+    matchLabels:
+      app: actualbudget
+  template:
+    metadata:
+      labels:
+        app: actualbudget
+    spec:
+      containers:
+        - name: actualbudget
+          image: actualbudget/actual-server:latest
+          envFrom:
+            - secretRef:
+                name: actualbudget-secret
+          env:
+            - containerPort: 5006
+          volumeMounts:
+            - mountPath: /data
+              name: actualbudget-pv
+      volumes:
+        - name: actualbudget-pv
+          persistentVolumeClaim:
+            claimName: actualbudget-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: actualbudget
+  namespace: actualbudget
+spec:
+  selector:
+      app: actualbudget
+  ports:
+    - port: 5006
+      protocol: TCP
+      targetPort: 5006
+  type: ClusterIP
+

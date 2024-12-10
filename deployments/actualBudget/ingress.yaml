@@ -1,0 +1,22 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: actualbudget
+  namespace: actualbudget
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`actualbudget.local.tigovanroy.space`)
+      services:
+        - name: actualbudget
+          port: 5006
+      middlewares:
+        - name: actualbudget-headers
+          namespace: actualbudget
+  tls:
+    secretName: local-tigovanroy-space-production-tls
