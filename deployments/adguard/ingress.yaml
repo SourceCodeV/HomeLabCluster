@@ -1,0 +1,29 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: adguard-ingress
+  namespace: adguard
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`adguard.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: adguard-service
+          port: 80
+      middlewares:
+        - name: adguard-headers
+    - match: Host(`adguard.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: adguard-service
+          port: 3000
+      middlewares:
+        - name: adguard-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls
+
