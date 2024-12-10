@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: homeassistant
+  name: homeassistant
+  namespace: homeassistant
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 600
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: homeassistant
+  template:
+    metadata:
+      labels:
+        app: homeassistant
+    spec:
+      volumes:
+        - name: ha-storage
+          persistentVolumeClaim:
+            claimName: homeassistant-claim
+        - name: ha-config
+          configMap:
+            name: home-assistant-config
+      containers:
+        - image: ghcr.io/home-assistant/home-assistant:stable
+          name: home-assistant
+          envFrom:
+          - configMapRef:
+              name: home-assistant-config
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - mountPath: "/config"
+              name: ha-storage
+            - mountPath: "/config/configuration.yaml"
+              subPath: configuration.yaml
+              name: ha-config
+      hostNetwork: true
+
+# ---
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: hacs-installer
+#   namespace: homeassistant
+# spec:
+#   containers:
+#     - name: hacs-installer
+#       image: debian:bullseye-slim
+#       command: ["/bin/bash", "-c", "--"]
+#       args:
+#         - wget -O - https://get.hacs.xyz | bash -;
+#           sleep 10;
+#       volumeMounts:
+#         - name: ha-storage
+#           mountPath: /config
+#   restartPolicy: Never
+#   volumes:
+#     - name: ha-storage
+#       persistentVolumeClaim:
+#         claimName: homeassistant-claim
