@@ -1,0 +1,27 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarr-ingress
+  namespace: media
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.sonarr.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: sonarr-service
+          port: 8989
+    - match: Host(`sonarr.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: sonarr-service
+          port: 8989
+      middlewares:
+        - name: media-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls
+

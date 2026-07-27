@@ -1,0 +1,59 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: cleanuparr
+  namespace: media
+  labels:
+    app: cleanuparr
+    part-of: cleanuparr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cleanuparr
+      part-of: cleanuparr
+  template:
+    metadata:
+      labels:
+        app: cleanuparr
+        part-of: cleanuparr
+    spec:
+      containers:
+      - name: cleanuparr
+        image: ghcr.io/cleanuparr/cleanuparr:latest
+        ports:
+        - name: cleanuparr
+          containerPort: 11011
+        env:
+        - name: PORT
+          value: "11011"
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK
+          value: "022"
+        volumeMounts:
+        - name: cleanuparr
+          mountPath: /config
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: cleanuparr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: cleanuparr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: cleanuparr
+        persistentVolumeClaim:
+          claimName: cleanuparr

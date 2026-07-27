@@ -1,0 +1,68 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sonarr
+  namespace: media
+  labels:
+    app: sonarr
+    part-of: sonarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+      part-of: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+        part-of: sonarr
+    spec:
+      containers:
+      - name: sonarr
+        image: ghcr.io/linuxserver/sonarr:latest
+        ports:
+        - name: sonarr
+          containerPort: 8989
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK
+          value: "022"
+        volumeMounts:
+        - name: sonarr
+          mountPath: /config
+        - mountPath: "/TVShows"
+          readOnly: false
+          name: sonarr-data
+          subPath: TVShows
+        - mountPath: "/downloads"
+          readOnly: false
+          name: sonarr-data
+          subPath: downloads
+        resources:
+          limits:
+            memory: 700Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: sonarr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: sonarr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: sonarr
+        persistentVolumeClaim:
+          claimName: sonarr
+      - name: sonarr-data
+        persistentVolumeClaim:
+          claimName: media-pvc-data

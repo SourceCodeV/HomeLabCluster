@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: media
+  labels:
+    app: bazarr
+    part-of: bazarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bazarr
+      part-of: bazarr
+  template:
+    metadata:
+      labels:
+        app: bazarr
+        part-of: bazarr
+    spec:
+      securityContext:
+        fsGroup: 1000 # Ensures group ownership is applied
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroupChangePolicy: "Always" 
+      containers:
+      - name: bazarr
+        image: lscr.io/linuxserver/bazarr:latest
+        ports:
+        - name: bazarr
+          containerPort: 6767
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK_SET
+          value: "022"
+        volumeMounts:
+        - name: bazarr-config
+          mountPath: /config
+          subPath: config
+        - mountPath: "/movies"
+          readOnly: false
+          name: nfs-bazarr-data
+          subPath: Movies
+        - mountPath: "/tv"
+          readOnly: false
+          name: nfs-bazarr-data
+          subPath: TVShows
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: bazarr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: bazarr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: bazarr-config
+        persistentVolumeClaim:
+          claimName: bazarr-pvc-config
+      - name: nfs-bazarr-data
+        persistentVolumeClaim:
+          claimName: media-pvc-data

@@ -1,0 +1,73 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: radarr
+  namespace: media
+  labels:
+    app: radarr
+    part-of: radarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radarr
+      part-of: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+        part-of: radarr
+    spec:
+      # securityContext:
+      #   fsGroup: 1000
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      #   runAsNonRoot: true
+      containers:
+      - name: radarr
+        image: lscr.io/linuxserver/radarr:latest
+        ports:
+        - name: radarr
+          containerPort: 7878
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK
+          value: "022"
+        volumeMounts:
+        - name: radarr
+          mountPath: /config
+        - mountPath: "/Movies"
+          readOnly: false
+          name: radarr-data
+          subPath: Movies
+        - mountPath: "/downloads"
+          readOnly: false
+          name: radarr-data
+          subPath: downloads
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: radarr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: radarr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: radarr
+        persistentVolumeClaim:
+          claimName: radarr
+      - name: radarr-data
+        persistentVolumeClaim:
+          claimName: media-pvc-data

@@ -1,0 +1,64 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: huntarr
+  namespace: media
+  labels:
+    app: huntarr
+    part-of: huntarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huntarr
+      part-of: huntarr
+  template:
+    metadata:
+      labels:
+        app: huntarr
+        part-of: huntarr
+    spec:
+      # securityContext:
+      #   fsGroup: 1000
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      #   runAsNonRoot: true
+      containers:
+      - name: huntarr
+        image: ghcr.io/plexguide/huntarr:latest
+        ports:
+        - name: huntarr
+          containerPort: 9705
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK
+          value: "022"
+        volumeMounts:
+        - name: huntarr
+          mountPath: /config
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: huntarr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: huntarr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: huntarr
+        persistentVolumeClaim:
+          claimName: huntarr
+
+#ocean-crystal-tower-77 

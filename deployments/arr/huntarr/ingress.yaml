@@ -1,0 +1,27 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: huntarr-ingress
+  namespace: media
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.huntarr.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: huntarr-service
+          port: 9705
+    - match: Host(`huntarr.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: huntarr-service
+          port: 9705
+      middlewares:
+        - name: media-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls
+

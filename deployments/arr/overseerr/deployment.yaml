@@ -1,0 +1,57 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: overseerr
+  namespace: media
+  labels:
+    app: overseerr
+    part-of: overseerr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: overseerr
+      part-of: overseerr
+  template:
+    metadata:
+      labels:
+        app: overseerr
+        part-of: overseerr
+    spec:
+      containers:
+      - name: overseerr
+        image: ghcr.io/linuxserver/overseerr:1.33.2
+        ports:
+        - name: overseerr
+          containerPort: 5055
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK
+          value: "022"
+        volumeMounts:
+        - name: overseerr
+          mountPath: /config
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: overseerr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: overseerr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: overseerr
+        persistentVolumeClaim:
+          claimName: overseerr

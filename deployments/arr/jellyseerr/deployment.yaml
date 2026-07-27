@@ -1,0 +1,51 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: jellyseerr
+  namespace: media
+  labels:
+    app: jellyseerr
+    part-of: jellyseerr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyseerr
+      part-of: jellyseerr
+  template:
+    metadata:
+      labels:
+        app: jellyseerr
+        part-of: jellyseerr
+    spec:
+      containers:
+      - name: jellyseerr
+        image: "fallenbagel/jellyseerr:latest"
+        ports:
+        - name: jellyseerr
+          containerPort: 5055
+        env:
+        - name: TZ
+          value: "Europe/Brussels"
+        volumeMounts:
+        - name: jellyseerr
+          mountPath: /app/config
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: jellyseerr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: jellyseerr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: jellyseerr
+        persistentVolumeClaim:
+          claimName: jellyseerr

@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: gluetun-deployment
+    namespace: media
+    labels:
+        app: gluetun
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: gluetun
+    template:
+        metadata:
+            labels:
+                app: gluetun
+        spec:
+            initContainers:
+                - name: gluetun
+                  # if you do not add restartPolicy the other init containers will never start
+                  # it will be an initContainer and not a native sidecar container https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/
+                  restartPolicy: Always
+                  image: ghcr.io/qdm12/gluetun
+                  imagePullPolicy: Always
+                  securityContext:
+                      capabilities:
+                          add:
+                              - 'NET_ADMIN'
+                  env:
+                      - name: TZ
+                        value: 'Europe/Brussels'
+                      - name: VPN_SERVICE_PROVIDER
+                        value: cyberghost
+                      - name: VPN_TYPE
+                        value: openvpn
+                      - name: SERVER_COUNTRIES
+                        value: Germany
+                      - name: OPENVPN_USER
+                        valueFrom:
+                          secretKeyRef:
+                            name: vpn-secrets
+                            key: PROTONVPN_USER
+                      - name: OPENVPN_PASSWORD
+                        valueFrom:
+                          secretKeyRef:
+                            name: vpn-secrets
+                            key: PROTONVPN_PASSWORD
+                - name: ping
+                  image: busybox
+                  command:
+                      - sh
+                      - -c
+                      - |
+                          while ! ping -c 1 8.8.8.8; do
+                            echo "Ping failed, retrying in 5"
+                            sleep 5
+                          done
+                          echo "ping successful, exiting"
+            containers:
+                - name: curlpod
+                  image: curlimages/curl
+                  args:
+                      - /bin/sh
+                      - -c
+                      - while true; do curl checkip.amazonaws.com; sleep 15;
+                        done
+                  imagePullPolicy: Always

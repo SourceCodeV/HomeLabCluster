@@ -1,0 +1,68 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: lidarr
+  namespace: media
+  labels:
+    app: lidarr
+    part-of: lidarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lidarr
+      part-of: lidarr
+  template:
+    metadata:
+      labels:
+        app: lidarr
+        part-of: lidarr
+    spec:
+      containers:
+      - name: lidarr
+        image: lscr.io/linuxserver/lidarr:latest
+        ports:
+        - name: lidarr
+          containerPort: 8686
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK
+          value: "022"
+        volumeMounts:
+        - name: lidarr-config
+          mountPath: /config
+        - mountPath: "/Music"
+          readOnly: false
+          name: lidarr-data
+          subPath: Music
+        - mountPath: "/downloads"
+          readOnly: false
+          name: lidarr-data
+          subPath: downloads
+        resources:
+          limits:
+            memory: 750Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: lidarr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: lidarr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: lidarr-config
+        persistentVolumeClaim:
+          claimName: lidarr-config
+      - name: lidarr-data
+        persistentVolumeClaim:
+          claimName: media-pvc-data

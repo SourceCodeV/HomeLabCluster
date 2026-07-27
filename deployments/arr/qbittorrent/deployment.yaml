@@ -1,0 +1,117 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  selector:
+    matchLabels:
+      app: qbittorrent
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      volumes:
+      - name: qbittorrent
+        persistentVolumeClaim:
+          claimName: qbittorrent
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: media-pvc-data
+      - name: gluetun-config
+        persistentVolumeClaim:
+          claimName: gluetun
+      - name: tun-device
+        hostPath:
+          path: /dev/net/tun
+          type: CharDevice 
+      - name: gluetun-cert-volume
+        configMap:
+          name: gluetun-cert-config
+      containers:
+      - name: qbittorrent
+        image: linuxserver/qbittorrent
+        ports:
+        - containerPort: 8080
+          name: webui
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK_SET
+          value: "002"
+        - name: WEBUI_PORT
+          value: "8080"
+        volumeMounts:
+        - name: qbittorrent
+          mountPath: /config
+        - mountPath: /downloads
+          readOnly: false
+          name: media-volume
+          subPath: downloads
+      - name: gluetun
+        image: qmcgaw/gluetun
+        env:
+        - name: VPN_SERVICE_PROVIDER
+          value: "cyberghost"
+        - name: SERVER_COUNTRIES
+          value: "Luxembourg"
+        - name: OPENVPN_USER
+          valueFrom:
+            secretKeyRef:
+              name: vpn-secrets
+              key: OPENVPN_USER
+        - name: OPENVPN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vpn-secrets
+              key: OPENVPN_PASSWORD
+        - name: OPENVPN_PROTOCOL
+          value: "udp"
+        - name: DNS_ADDRESS
+          value: "127.0.0.1"
+        - name: DNS_KEEP_NAMESERVER
+          value: "on"
+        - name: DOT
+          value: "on"
+        - name: FIREWALL_DEBUG
+          value: "on"
+        - name: FIREWALL_OUTBOUND_SUBNETS
+          value: "10.42.0.0/16,10.43.0.0/16"
+        - name: FIREWALL_OUTBOUND_PORTS
+          value: "53,443"
+        - name: FIREWALL_OUTBOUND_IPS
+          value: "1.1.1.1,1.0.0.1"
+        - name: HEALTH_TARGET_ADDRESS
+          value: "1.1.1.1:443"
+        - name: HEALTH_VPN_DURATION_INITIAL
+          value: "60s"
+        - name: HEALTH_VPN_DURATION_ADDITIONAL
+          value: "120s"
+        - name: HEALTH_CHECK_INTERVAL
+          value: "60s"
+        - name: UPDATER_PERIOD
+          value: "24h"
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+        volumeMounts:
+          - name: gluetun-config
+            mountPath: /gluetun
+          - mountPath: /dev/net/tun
+            name: tun-device
+          - name: gluetun-cert-volume
+            mountPath: /gluetun/client.crt
+            subPath: client.crt
+          - name: gluetun-cert-volume
+            mountPath: /gluetun/client.key
+            subPath: client.key
+
+

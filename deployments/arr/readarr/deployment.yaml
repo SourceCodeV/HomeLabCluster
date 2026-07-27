@@ -1,0 +1,79 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: readarr
+  namespace: media
+  labels:
+    app: readarr
+    part-of: readarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: readarr
+      part-of: readarr
+  template:
+    metadata:
+      labels:
+        app: readarr
+        part-of: readarr
+    spec:
+      # securityContext:
+      #   fsGroup: 1000
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      #   runAsNonRoot: true
+      
+      containers:
+      - name: readarr
+        image: lscr.io/linuxserver/readarr:nightly
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: readarr
+          containerPort: 8787
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: UMASK
+          value: "022"
+        volumeMounts:
+        - name: readarr
+          mountPath: /config
+        - mountPath: "/Audiobooks"
+          readOnly: false
+          name: readarr-data
+          subPath: Audiobooks
+        - mountPath: "/Books"
+          readOnly: false
+          name: readarr-data
+          subPath: Books
+        - mountPath: "/downloads"
+          readOnly: false
+          name: readarr-data
+          subPath: downloads
+        resources:
+          limits:
+            memory: 300Mi
+          requests:
+            memory: 250Mi
+        readinessProbe:
+          tcpSocket:
+            port: readarr
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: readarr
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: readarr
+        persistentVolumeClaim:
+          claimName: readarr
+      - name: readarr-data
+        persistentVolumeClaim:
+          claimName: media-pvc-data

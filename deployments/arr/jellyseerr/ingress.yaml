@@ -1,0 +1,27 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jellyseerr-ingress
+  namespace: media
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.jellyseerr.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: jellyseerr-service
+          port: 5055
+    - match: Host(`jellyseerr.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: jellyseerr-service
+          port: 5055
+      middlewares:
+        - name: media-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls
+
