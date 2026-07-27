@@ -31,7 +31,7 @@ spec:
             claimName: mealie-data
       containers:
         - name: mealie
-          image: ghcr.io/mealie-recipes/mealie:nightly
+          image: ghcr.io/mealie-recipes/mealie:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 9000
@@ -43,9 +43,3 @@ spec:
                 name: mealie-configs
             - secretRef:
                 name: mealie-secrets
-          livenessProbe:
-            httpGet:
-              path: /g/home
-              port: 9000
-            initialDelaySeconds: 10
-            periodSeconds: 5

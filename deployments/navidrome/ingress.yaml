@@ -1,0 +1,27 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: navidrome-ingress
+  namespace: media
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.navidrome.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: navidrome-service
+          port: 4533
+    - match: Host(`navidrome.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: navidrome-service
+          port: 4533
+      middlewares:
+        - name: default-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls
+

@@ -1,0 +1,17 @@
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: esphome-server
+  namespace: default
+  labels:
+    app: esphome-server
+spec:
+  externalName: 192.168.10.110  # Replace with your NAS IP or DNS name
+  type: ExternalName
+  ports:
+    - port: 36052
+      targetPort: 36052
+      protocol: TCP
+

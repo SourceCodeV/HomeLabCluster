@@ -1,0 +1,14 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: donetick-service
+  namespace: donetick
+spec:
+  selector:
+    app: donetick
+  ports:
+  - protocol: TCP
+    port: 2021 
+    targetPort: 2021
+  type: ClusterIP

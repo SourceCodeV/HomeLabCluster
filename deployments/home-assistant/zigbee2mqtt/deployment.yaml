@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zigbee2mqtt
+  namespace: homeassistant
+spec:
+  selector:
+    matchLabels:
+      app: zigbee2mqtt
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: zigbee2mqtt
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+      initContainers:
+        - name: copy-config
+          image: busybox
+          command: ["sh", "-c", "cp /config-readonly/configuration.yaml /data/configuration.yaml"]
+          volumeMounts:
+            - name: config
+              mountPath: /config-readonly
+            - name: data
+              mountPath: /data
+      containers:
+      - image: koenkk/zigbee2mqtt:1.42.0
+        name: zigbee2mqtt
+        env:
+        - name: "ZIGBEE2MQTT_DATA"
+          value: "/data"
+        - name: "ZIGBEE2MQTT_CONFIG_MQTT_SERVER"
+          value: "mqtt://mosquitto-mqtts.homeassistant.svc.cluster.local:1883"
+        - name: "ZIGBEE2MQTT_CONFIG_MQTT_USER"
+          value: "tigo"
+        - name: "ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD"
+          value: "9647135280Tigo"
+        - name: "ZIGBEE2MQTT_CONFIG_MQTT_BASE_TOPIC"
+          value: "zigbee2mqtt"
+        - name: "ZIGBEE2MQTT_CONFIG_PERMIT_JOIN"
+          value: "true"
+        - name: "ZIGBEE2MQTT_CONFIG_SERIAL_PORT"
+          value: "tcp://192.168.20.75:8888"
+        - name: "ZIGBEE2MQTT_CONFIG_ADVANCED_NETWORK_KEY"
+          value: "GENERATE"
+        - name: "ZIGBEE2MQTT_CONFIG_ADVANCED_FRONTEND_PORT"
+          value: "8080"
+        - name: "TZ"
+          value: "Europe/Brussels"
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: udev
+          mountPath: /run/udev
+        - name: ttyacm
+          mountPath: /dev/ttyACM0
+        securityContext:
+          privileged: true
+      volumes:
+      - name: config
+        configMap:
+          name: zigbee2mqtt-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: zigbee2mqtt-data
+      - name: udev
+        hostPath:
+          path: /run/udev
+      - name: ttyacm
+        hostPath:
+          path: /dev/ttyACM0

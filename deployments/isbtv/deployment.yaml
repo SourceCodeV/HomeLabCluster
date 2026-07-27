@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isponsorblocktv
+  namespace: isbtv 
+  labels:
+    app: isponsorblocktv
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: isponsorblocktv
+  template:
+    metadata:
+      labels:
+        app: isponsorblocktv
+    spec:
+      hostNetwork: true 
+      dnsPolicy: ClusterFirstWithHostNet 
+      securityContext:
+          fsGroup: 1000
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+      volumes:
+        - name: isbtv-data
+          persistentVolumeClaim:
+            claimName: isbtv-data 
+      containers:
+        - name: isponsorblocktv
+          image: ghcr.io/dmunozv04/isponsorblocktv:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080 
+          volumeMounts:
+          - name: isbtv-data
+            mountPath: /app/data

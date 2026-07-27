@@ -29,6 +29,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: "debug"
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: home.local.tigovanroy.space
           envFrom:
             - secretRef:
                 name: homepage-secret

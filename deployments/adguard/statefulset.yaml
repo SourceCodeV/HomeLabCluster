@@ -1,10 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: adguard-deployment
+  name: adguard-statefulset
   namespace: adguard
 spec:
-  replicas: 1
+  replicas: 3
+  serviceName: adguard-service
   selector:
     matchLabels:
       app: adguard
@@ -13,6 +14,16 @@ spec:
       labels:
         app: adguard
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - adguard
+            topologyKey: "kubernetes.io/hostname" 
       containers:
       - name: adguard-home
         image: adguard/adguardhome:latest
@@ -24,21 +35,29 @@ spec:
               key: AdGuardHome.yaml
         ports:
         - containerPort: 53
-          name: dns
+          name: dns-udp
           protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
         - containerPort: 3000
           name: http-initial
         - containerPort: 80
           name: http
           protocol: TCP
+          
         volumeMounts:
         - name: adguard-data
           mountPath: /opt/adguardhome/work
         - name: adguard-data
           mountPath: /opt/adguardhome/conf 
-      volumes:
-      - name: adguard-data
-        persistentVolumeClaim:
-          claimName: adguard-pvc
 
-    ### IN SETUP WIZARD -> SET UI PORT FROM 80 TO 3000
+  volumeClaimTemplates:
+  - metadata:
+      name: adguard-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 5Gi

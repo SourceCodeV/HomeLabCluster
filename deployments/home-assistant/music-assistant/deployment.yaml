@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-assistant
+  namespace: homeassistant
+spec:
+  selector:
+    matchLabels:
+      app: music-assistant
+  template:
+    metadata:
+      labels:
+        app: music-assistant
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsUser: 0
+      containers:
+        - name: music-assistant
+          image: ghcr.io/music-assistant/server:2.7.2
+          env:
+            - name: LOG_LEVEL
+              value: info
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          securityContext:
+            capabilities:
+              add:
+                - SYS_ADMIN
+                - DAC_READ_SEARCH
+            privileged: true
+            allowPrivilegeEscalation: true
+          ports:
+            - containerPort: 8095 # Music Assistant default
+              name: http
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: music-assistant-data

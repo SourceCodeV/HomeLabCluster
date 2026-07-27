@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: navidrome
+  namespace: media
+  labels:
+    app: navidrome
+    part-of: navidrome
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: navidrome
+      part-of: navidrome
+  template:
+    metadata:
+      labels:
+        app: navidrome
+        part-of: navidrome
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        supplementalGroups:
+          - 1000
+      containers:
+      - name: navidrome
+        image: "deluan/navidrome:latest"
+        ports:
+        - name: navidrome
+          containerPort: 4533
+        env:
+        - name: TZ
+          value: "Europe/Brussels"
+        volumeMounts:
+        - name: navidrome-data
+          mountPath: /data
+        - name: music-library
+          mountPath: /music
+          subPath: Music
+        - name: navidrome-config
+          mountPath: /data/navidrome.toml
+          subPath: navidrome.toml
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            memory: 250Mi
+      volumes:
+      - name: navidrome-data
+        persistentVolumeClaim:
+          claimName: navidrome-data
+      - name: music-library
+        persistentVolumeClaim:
+          claimName: media-pvc-data
+      - name: navidrome-config
+        configMap:
+          name: navidrome-config
+

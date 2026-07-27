@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: homeassistant
+data:
+  mosquitto.conf: |
+    persistence true
+    persistence_location /mosquitto/data/
+
+    log_dest stdout
+
+    allow_anonymous false
+    password_file /mosquitto/config/passwd
+    
+    # MQTTS listener
+    listener 1883
+    protocol mqtt
+
+
+    # WS Listener
+    listener 9001
+    protocol websockets
+
+
+  passwd: |
+    tigo:$7$101$q3yvq+GU3zhgcEU3$LuhtT74GpiugJGzOg6IJYynTmRDM0OBaDlWzib1Ur1CEuOjta99I1+60PdAPtuyDrWge8iRxpE8akDHeqcW1ow==
+    

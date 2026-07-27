@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: romm-media-pv
+  namespace: romm
+  labels:
+    type: nfs-media-share
+spec:
+  capacity:
+    storage: 3Ti
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 192.168.10.110
+    path: /mnt/ClusterStorage/media
+  persistentVolumeReclaimPolicy: Retain

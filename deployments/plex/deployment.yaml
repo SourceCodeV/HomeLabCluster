@@ -24,13 +24,14 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         runAsNonRoot: true
+        supplementaryGroups: [110]
       affinity: {}
       containers:
         - name: plex
           securityContext:
             privileged: true
-          image: plexinc/pms-docker:latest
-          imagePullPolicy: IfNotPresent
+          image: linuxserver/plex:latest
+          imagePullPolicy: Always
           readinessProbe:
             httpGet:
               path: /identity
@@ -42,12 +43,12 @@ spec:
               path: /identity
               port: 32400
             initialDelaySeconds: 15
-            timeoutSeconds: 10
+            timeoutSeconds: 60
           resources: 
             requests: 
               gpu.intel.com/i915: "1"
               cpu: 1000m
-              memory: 7.5Gi
+              memory: 12Gi
             limits: 
               gpu.intel.com/i915: "1"
           envFrom:
@@ -62,6 +63,8 @@ spec:
               value: Europe/Brussels
             - name: VERSION
               value: docker
+            - name: LIBVA_DRIVER_NAME
+              value: "iHD"
           volumeMounts:
             - mountPath: /config
               name: nfs-plex-config
@@ -70,21 +73,23 @@ spec:
               name: nfs-plex-config
               subPath: cache
             - mountPath: "/Audiobooks"
-              readOnly: true
+              readOnly: false
               name: nfs-plex-data
               subPath: Audiobooks
             - mountPath: "/Movies"
-              readOnly: true
+              readOnly: false
               name: nfs-plex-data
               subPath: Movies
             - mountPath: "/TVShows"
-              readOnly: true
+              readOnly: false
               name: nfs-plex-data
               subPath: TVShows
             - mountPath: "/Music"
-              readOnly: true
+              readOnly: false
               name: nfs-plex-data
               subPath: Music
+            - mountPath: /transcode
+              name: transcode
       dnsConfig: {}
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true

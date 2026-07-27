@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pocket-id-config
+  namespace: pocket-id
+data:
+  APP_URL: "https://pocketid.local.tigovanroy.space"
+  TRUST_PROXY: "true"
+  PUID: "1000"
+  PGID: "1000"

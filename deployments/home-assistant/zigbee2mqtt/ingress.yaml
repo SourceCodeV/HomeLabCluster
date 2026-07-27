@@ -1,0 +1,25 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: zigbee2mqtt-ingress
+  namespace: homeassistant
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.z2m.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: zigbee2mqtt
+          port: 8080
+    - match: Host(`z2m.local.tigovanroy.space`)
+      kind: Rule
+      services:
+        - name: zigbee2mqtt
+          port: 8080
+      middlewares:
+        - name: default-headers
+  tls:
+    secretName: local-tigovanroy-space-production-tls

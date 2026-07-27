@@ -21,3 +21,44 @@ data:
         hosts:
           192.168.10.109
     mobile_app:
+
+    ####################################################
+    #                                                  #
+    #                  Groups                          #
+    #                                                  #
+    ####################################################
+    # https://www.home-assistant.io/integrations/mobile_app/
+    group: !include groups.yaml
+    
+
+    ####################################################
+    #                                                  #
+    #                  Automations                     #
+    #                                                  #
+    ####################################################
+    # https://www.home-assistant.io/integrations/automation/
+    automation: !include automations.yaml
+
+    ####################################################
+    #                                                  #
+    #                  Scripts                         #
+    #                                                  #
+    ####################################################
+    # https://www.home-assistant.io/integrations/script/
+    script: !include scripts.yaml
+
+    ####################################################
+    #                                                  #
+    #                   Scene                          #
+    #                                                  #
+    ####################################################
+    # https://www.home-assistant.io/integrations/scene/
+    scene: !include scenes.yaml
+
+  groups.yaml: |
+
+  automations.yaml: |
+
+  scripts.yaml: |
+
+  scenes.yaml: |

@@ -1,0 +1,130 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: habitica-server
+  namespace: habitica
+  labels:
+    app: habitica-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: habitica-server
+  template:
+    metadata:
+      labels:
+        app: habitica-server
+    spec:
+      initContainers:
+        - name: wait-for-mongo
+          image: busybox:1.36.1
+          command: 
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for MongoDB..."
+              until nc -zvw3 habitica-mongo-0.habitica-mongo.habitica.svc.cluster.local 27017; do 
+                echo "MongoDB not ready, waiting..."
+                sleep 2
+              done
+              echo "MongoDB is ready."
+      containers:
+        - name: habitica-server
+          image: docker.io/awinterstein/habitica-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: habitica-configs
+            # - secretRef:
+            #     name: habitica-secrets
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: habitica-mongo
+  namespace: habitica
+  labels:
+    app: habitica-mongo
+spec:
+  serviceName: habitica-mongo 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: habitica-mongo
+  template:
+    metadata:
+      labels:
+        app: habitica-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: docker.io/mongo:7.0 
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+          args: ["--replSet", "rs", "--bind_ip_all", "--port", "27017"]
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+            - name: mongo-conf
+              mountPath: /data/configdb
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  mongosh --port 27017 --quiet --eval "
+                  try {
+                    var status = rs.status();
+                    if (status.ok == 1) { quit(0); }
+                    quit(1);
+                  } catch (err) {
+                    quit(1);
+                  }"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - 'mongosh --port 27017 --quiet --eval "db.adminCommand(\"ping\")"'
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  mongosh --port 27017 --quiet --eval "
+                  try {
+                    rs.status();
+                  } catch (err) {
+                    rs.initiate({
+                      _id: 'rs',
+                      members: [{ _id: 0, host: 'habitica-mongo-0.habitica-mongo.habitica.svc.cluster.local:27017' }]
+                    });
+                  }"
+            failureThreshold: 30
+            periodSeconds: 5
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: mongo-data
+        - name: mongo-conf
+          persistentVolumeClaim:
+            claimName: mongo-conf

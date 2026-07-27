@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-id
+  namespace: pocket-id
+  labels:
+    app: pocket-id
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pocket-id
+  template:
+    metadata:
+      labels:
+        app: pocket-id
+    spec:
+      securityContext:
+          fsGroup: 1000
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+      volumes:
+        - name: pocket-id-data
+          persistentVolumeClaim:
+            claimName: pocket-id-data
+      containers:
+        - name: pocket-id
+          image: ghcr.io/pocket-id/pocket-id:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 1411
+          volumeMounts:
+          - name: pocket-id-data
+            mountPath: /app/data
+          envFrom:
+            - configMapRef:
+                name: pocket-id-config
+          livenessProbe:
+            exec:
+              command: ["/app/pocket-id", "healthcheck"]
+            initialDelaySeconds: 10
+            periodSeconds: 90
+            timeoutSeconds: 5
+            failureThreshold: 2
+          readinessProbe:
+            exec:
+              command: ["/app/pocket-id", "healthcheck"]
+            initialDelaySeconds: 10
+            periodSeconds: 90
+            timeoutSeconds: 5
+            failureThreshold: 2

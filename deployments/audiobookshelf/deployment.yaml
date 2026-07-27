@@ -1,0 +1,58 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: audiobookshelf
+  namespace: media
+  labels:
+    app: audiobookshelf
+    part-of: audiobookshelf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audiobookshelf
+      part-of: audiobookshelf
+  template:
+    metadata:
+      labels:
+        app: audiobookshelf
+        part-of: audiobookshelf
+    spec:
+      containers:
+      - name: audiobookshelf
+        image: "ghcr.io/advplyr/audiobookshelf:latest"
+        ports:
+        - name: audiobookshelf
+          containerPort: 13378
+        env:
+        - name: TZ
+          value: "Europe/Brussels"
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        volumeMounts:
+        - name: audiobookshelf
+          mountPath: /config
+        - name: audiobookshelf
+          mountPath: /metadata
+        - mountPath: "/Audiobooks"
+          readOnly: false
+          name: nfs-audiobookshelf-data
+          subPath: Audiobooks
+        - mountPath: "/Podcasts"
+          readOnly: false
+          name: nfs-audiobookshelf-data
+          subPath: Podcasts
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            memory: 250Mi
+      volumes:
+      - name: audiobookshelf
+        persistentVolumeClaim:
+          claimName: audiobookshelf
+      - name: nfs-audiobookshelf-data
+        persistentVolumeClaim:
+          claimName: media-pvc-data

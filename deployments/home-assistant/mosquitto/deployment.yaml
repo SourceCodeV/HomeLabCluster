@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: homeassistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "cp -r /mosquitto/config /mosquitto/data/config && addgroup -S mosquitto && adduser -S mosquitto -G mosquitto && chmod 0700 /mosquitto/data/config/passwd && chown mosquitto:mosquitto /mosquitto/data/config/passwd"]
+          volumeMounts:
+          - mountPath: "/mosquitto/config/"
+            name: config
+          - mountPath: "/mosquitto/data/"
+            name: data
+          securityContext:
+            runAsUser: 0
+      containers:
+      - name: mosquitto
+        image: eclipse-mosquitto
+        ports:
+        - containerPort: 1883
+        - containerPort: 9001
+        volumeMounts:
+        - mountPath: "/mosquitto/data/"
+          name: data
+        - mountPath: "/mosquitto/config/"
+          name: config
+        securityContext:
+          runAsUser: 1000
+      volumes:
+      - name: config
+        configMap:
+          name: mosquitto-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: mosquitto-data

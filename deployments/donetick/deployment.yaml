@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: donetick
+  namespace: donetick
+  labels:
+    app: donetick
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: donetick
+  template:
+    metadata:
+      labels:
+        app: donetick
+    spec:
+      securityContext:
+          fsGroup: 1000
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+      volumes:
+        - name: donetick-data
+          persistentVolumeClaim:
+            claimName: donetick-data
+        - name: donetick-config-volume
+          configMap:
+            name: donetick-selfhosted-file 
+      containers:
+        - name: donetick
+          image: donetick/donetick
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 2021
+          volumeMounts:
+          - name: donetick-data
+            mountPath: /donetick-data
+          - name: donetick-config-volume
+            mountPath: /config 
+          env:
+            - name: DT_SQLITE_PATH
+              value: "/donetick-data/donetick.db"
+            - name: DT_ENV
+              value: "selfhosted"
+          envFrom:
+            - configMapRef:
+                name: donetick-config
+            - secretRef:
+                name: donetick-secret
+          livenessProbe:
+            tcpSocket:
+              port: 2021
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: 2021
+            initialDelaySeconds: 5
+            periodSeconds: 10

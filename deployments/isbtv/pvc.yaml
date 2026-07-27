@@ -2,13 +2,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: adguard-pvc
-  namespace: adguard
+  namespace: isbtv 
+  name: isbtv-data
 spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: longhorn
   resources:
     requests:
-      storage: 5Gi
-
+      storage: 100Mi

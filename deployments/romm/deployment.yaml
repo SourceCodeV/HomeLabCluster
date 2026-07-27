@@ -1,0 +1,154 @@
+---
+# RomM MariaDB Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: romm-db
+  namespace: romm
+  labels:
+    app: romm-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: romm-db
+  template:
+    metadata:
+      labels:
+        app: romm-db
+    spec:
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: romm-db-data
+      containers:
+        - name: mariadb
+          image: mariadb:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+          envFrom:
+            - configMapRef:
+                name: romm-config
+            - secretRef:
+                name: romm-secret
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
+              cpu: 100m
+
+---
+# RomM MariaDB Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: romm-db
+  namespace: romm
+spec:
+  selector:
+    app: romm-db
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
+
+---
+# RomM Application Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: romm
+  namespace: romm
+  labels:
+    app: romm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: romm
+  template:
+    metadata:
+      labels:
+        app: romm
+    spec:
+      securityContext: 
+          fsGroup: 1000
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.36.1
+          command: ['sh', '-c', 'until nc -zvw3 romm-db 3306; do echo waiting for romm-db; sleep 5; done;']
+          resources:
+            limits:
+              cpu: 50m
+              memory: 50Mi
+            requests:
+              cpu: 20m
+              memory: 20Mi
+        - name: copy-config
+          image: busybox:1.36.1
+          command: ['sh', '-c', 'if [ ! -f /romm/config/config.yml ]; then echo "Copying default config.yml"; cp /tmp/config/config.yml /romm/config/config.yml; else echo "config.yml already exists"; fi']
+          volumeMounts:
+            - name: config-template-volume
+              mountPath: /tmp/config
+            - name: romm-app-data
+              mountPath: /romm/config
+      volumes:
+        - name: romm-app-data
+          persistentVolumeClaim:
+            claimName: romm-app-data
+        - name: romm-library
+          persistentVolumeClaim:
+            claimName: romm-library-data
+        - name: config-template-volume
+          configMap:
+            name: romm-config-template
+      containers:
+        - name: romm
+          image: rommapp/romm:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080 
+          volumeMounts:
+          - name: romm-app-data
+            mountPath: /romm/resources 
+            subPath: resources
+          - name: romm-app-data
+            mountPath: /romm/assets
+          - name: romm-app-data
+            mountPath: /romm/config
+          - name: romm-library
+            mountPath: /romm/library
+            subPath: Roms
+          envFrom:
+            - configMapRef:
+                name: romm-config
+            - secretRef:
+                name: romm-secret
+          resources:
+            limits:
+              memory: 1024Mi
+            requests:
+              memory: 512Mi
+              cpu: 250m
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+

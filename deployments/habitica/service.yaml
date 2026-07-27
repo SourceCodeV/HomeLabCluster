@@ -1,0 +1,28 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: habitica-mongo
+  namespace: habitica
+spec:
+  selector:
+    app: habitica-mongo
+  ports:
+  - protocol: TCP
+    port: 27017
+    targetPort: 27017
+  clusterIP: None
+  type: ClusterIP
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: habitica-service
+  namespace: habitica
+spec:
+  selector:
+    app: habitica-server
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: ClusterIP

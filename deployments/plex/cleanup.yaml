@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: plex-cleanup-tool
+  namespace: media
+spec:
+  volumes:
+    - name: plex-config-volume
+      persistentVolumeClaim:
+        claimName: plex-pvc-config
+  containers:
+    - name: cleanup-container
+      image: alpine:latest
+      # Command that keeps the container running indefinitely
+      command: ["/bin/sh", "-c", "trap : TERM INT; sleep infinity & wait"]
+      volumeMounts:
+        # Mount the PVC to /mnt, pointing to the 'config' subpath
+        - mountPath: "/mnt"
+          name: plex-config-volume
+          subPath: config
